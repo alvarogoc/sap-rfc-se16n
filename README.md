@@ -17,8 +17,6 @@ The selection screen is styled to mimic transaction **SE16N**.
 | SE16N element | In this report |
 |---|---|
 | Table | `P_TABLE` |
-| Text table | `P_TTAB` (cosmetic, matches SE16N) |
-| Layout | `P_LAYOUT` — applied to the ALV if filled |
 | Maximum no. of hits | `P_MAX` (default 500) — caps rows across all RFCs |
 | "Selection Criteria" frame | `BLOCK b3 WITH FRAME TITLE` — holds `P_SELECT` (field list) and `P_WHERE` |
 | RFC multi-input *(new)* | `BLOCK b2` with `SELECT-OPTIONS s_rfc ... NO INTERVALS` |

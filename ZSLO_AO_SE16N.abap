@@ -12,8 +12,6 @@
 *& SE16N element                               | In this report
 *& ---------------------------------------------+-------------------------------------------------------------------
 *& Table                                        | P_TABLE
-*& Text table                                   | P_TTAB  (cosmetic, matches SE16N)
-*& Layout                                       | P_LAYOUT - applied to ALV if filled
 *& Maximum no. of hits                          | P_MAX   (default 500) - caps rows across all RFCs
 *& "Selection Criteria" frame                   | BLOCK b3 WITH FRAME TITLE - holds P_SELECT (field list) and P_WHERE
 *& New: RFC multi-input                         | BLOCK b2 with SELECT-OPTIONS s_rfc ... NO INTERVALS
@@ -63,12 +61,10 @@ FIELD-SYMBOLS:
 * Selection screen — SE16N look & feel                                 *
 *----------------------------------------------------------------------*
 
-* ---- Header panel (Table / Text table / Layout / Max hits) ---------
+* ---- Header panel (Table / Max hits) --------------------------------
 SELECTION-SCREEN BEGIN OF BLOCK b1 WITH FRAME.
 
 PARAMETERS:     p_table  TYPE tabname    OBLIGATORY,
-                p_ttab   TYPE tabname                    ,     "Text table (display)
-                p_layout TYPE disvariant-variant         ,
                 p_max    TYPE i            DEFAULT 500   .
 
 SELECTION-SCREEN END   OF BLOCK b1.
@@ -90,8 +86,6 @@ INITIALIZATION.
   tx_b3 = 'Selection Criteria'.
   " Field labels (also definable in text-symbols SE38 → Goto → Text elements)
   %_p_table_%_app_%-text  = 'Table'.
-  %_p_ttab_%_app_%-text   = 'Text table'.
-  %_p_layout_%_app_%-text = 'Layout'.
   %_p_max_%_app_%-text    = 'Maximum no. of hits'.
   %_p_select_%_app_%-text = 'Field list (SELECT)'.
   %_p_where_%_app_%-text  = 'WHERE clause'.
@@ -193,11 +187,6 @@ START-OF-SELECTION.
   lo_layout_key-report = sy-repid.
   lo_layout_settings->set_key( lo_layout_key ).
   lo_layout_settings->set_save_restriction( if_salv_c_layout=>restrict_none ).
-
-  IF p_layout IS NOT INITIAL.
-    lo_layout_settings->set_default( abap_true ).
-    lo_layout_settings->set_initial_layout( p_layout ).
-  ENDIF.
 
   lo_functions = lo_alv->get_functions( ).
   lo_functions->set_all( ).
