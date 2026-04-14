@@ -31,6 +31,7 @@ DATA:
   lo_structdescr     TYPE REF TO cl_abap_structdescr,
   lo_aug_structdescr TYPE REF TO cl_abap_structdescr,
   lt_components      TYPE cl_abap_structdescr=>component_table,
+  lt_leaf_components TYPE cl_abap_structdescr=>component_table,
   lt_aug_components  TYPE cl_abap_structdescr=>component_table,
   ls_aug_component   TYPE abap_componentdescr,
   ls_component       LIKE LINE OF lt_components,
@@ -113,10 +114,14 @@ START-OF-SELECTION.
   lo_structdescr ?= lo_datadescr.
   lt_components  = lo_structdescr->get_components( ).
 
+  " Flatten includes / nested structures into leaf components
+  PERFORM flatten_components USING lt_components
+                             CHANGING lt_leaf_components.
+
   ls_aug_component-name = 'RFCDEST'.
   ls_aug_component-type ?= cl_abap_elemdescr=>get_c( 32 ).
   APPEND ls_aug_component TO lt_aug_components.
-  APPEND LINES OF lt_components TO lt_aug_components.
+  APPEND LINES OF lt_leaf_components TO lt_aug_components.
 
   lo_aug_structdescr = cl_abap_structdescr=>create( lt_aug_components ).
   CREATE DATA lo_dref_aug_struc TYPE HANDLE lo_aug_structdescr.
@@ -158,7 +163,7 @@ START-OF-SELECTION.
       ASSIGN COMPONENT 'RFCDEST' OF STRUCTURE <aug_struc> TO <rfc_field>.
       <rfc_field> = ls_rfc-low.
 
-      LOOP AT lt_components INTO ls_component.
+      LOOP AT lt_leaf_components INTO ls_component.
         ASSIGN COMPONENT ls_component-name OF STRUCTURE <src_line>  TO <src_field>.
         ASSIGN COMPONENT ls_component-name OF STRUCTURE <aug_struc> TO <dst_field>.
         IF <src_field> IS ASSIGNED AND <dst_field> IS ASSIGNED.
@@ -203,7 +208,7 @@ START-OF-SELECTION.
     CATCH cx_salv_not_found INTO lex_not_found.
   ENDTRY.
 
-  LOOP AT lt_components INTO ls_component.
+  LOOP AT lt_leaf_components INTO ls_component.
     TRY.
         lo_column = lo_columns->get_column( CONV #( ls_component-name ) ).
         lo_column->set_long_text(   CONV #( ls_component-name ) ).
@@ -214,3 +219,32 @@ START-OF-SELECTION.
   ENDLOOP.
 
   lo_alv->display( ).
+
+*&---------------------------------------------------------------------*
+*& Form flatten_components
+*&---------------------------------------------------------------------*
+*& Recursively expands INCLUDE structures and nested structures into a
+*& flat list of leaf components so that field names match what the ALV
+*& actually renders (includes are transparent at runtime).
+*&---------------------------------------------------------------------*
+FORM flatten_components USING    it_comp TYPE cl_abap_structdescr=>component_table
+                        CHANGING ct_flat TYPE cl_abap_structdescr=>component_table.
+
+  DATA: ls_comp TYPE abap_componentdescr,
+        lo_sub  TYPE REF TO cl_abap_structdescr,
+        lt_sub  TYPE cl_abap_structdescr=>component_table.
+
+  LOOP AT it_comp INTO ls_comp.
+    IF ls_comp-as_include = abap_true
+       OR ( ls_comp-type IS BOUND
+            AND ls_comp-type->kind = cl_abap_typedescr=>kind_struct ).
+      lo_sub ?= ls_comp-type.
+      lt_sub  = lo_sub->get_components( ).
+      PERFORM flatten_components USING    lt_sub
+                                 CHANGING ct_flat.
+    ELSE.
+      APPEND ls_comp TO ct_flat.
+    ENDIF.
+  ENDLOOP.
+
+ENDFORM.
