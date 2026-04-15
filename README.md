@@ -2,10 +2,6 @@
 
 SE16N-like ABAP report to query the same table across multiple RFC destinations and compare results in one ALV.
 
-- **Author:** Alvaro Otero
-- **Mail:** alvaro.otero@sap.com
-- **Date:** 2026-04-13
-
 ## What it does
 
 Reads the same table from N RFC destinations and shows the merged result in a single ALV. The first column identifies the source RFC so rows from different systems can be compared side-by-side.
