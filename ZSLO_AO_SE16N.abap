@@ -2,7 +2,6 @@
 *& Report ZSLO_AO_SE16N
 *&---------------------------------------------------------------------*
 *& Author : Alvaro Otero
-*& Mail   : alvaro.otero@sap.com
 *& Date   : 2026-04-13
 *&---------------------------------------------------------------------*
 *& Reads the same table from N RFC destinations and shows the merged
